@@ -11,6 +11,7 @@ LLM과 함께 일할 때 필요한 도구를 모아 두는 곳입니다. 에이�
 | `skills/evening-socratic-journal` | 그날의 에이전트 세션을 문답을 거쳐 일기로 남깁니다. |
 | `hooks/quiet-checks.sh` | 테스트·린트·빌드 출력을 로그 파일로 보내고 에이전트에게는 끝부분만 보여 줍니다. |
 | `hooks/secret-guard.sh` | 토큰, 웹훅 주소, 개인 키가 들어 있는 프롬프트·셸 명령·파일 쓰기를 차단합니다. |
+| `hooks/pr-explain.sh` | PR 설명에 시각 자료와 동작 원리 설명이 없으면 `gh pr create`를 차단합니다. |
 
 ## 설치
 
@@ -32,7 +33,8 @@ ln -s "$PWD/skills/dolpa" ~/.claude/skills/dolpa
     ],
     "PreToolUse": [
       { "matcher": "Bash", "hooks": [{ "type": "command", "command": "/path/to/toolbox/hooks/quiet-checks.sh" }] },
-      { "matcher": "Bash|Write|Edit", "hooks": [{ "type": "command", "command": "/path/to/toolbox/hooks/secret-guard.sh" }] }
+      { "matcher": "Bash|Write|Edit", "hooks": [{ "type": "command", "command": "/path/to/toolbox/hooks/secret-guard.sh" }] },
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "/path/to/toolbox/hooks/pr-explain.sh" }] }
     ]
   }
 }
@@ -43,3 +45,5 @@ ln -s "$PWD/skills/dolpa" ~/.claude/skills/dolpa
 `quiet-checks.sh`는 인식한 검사 명령이 성공하면 마지막 5줄, 실패하면 마지막 80줄을 보여 주고 종료 상태와 로그 경로를 덧붙입니다. 줄 수는 `QUIET_CHECKS_OK_LINES`와 `QUIET_CHECKS_FAIL_LINES`로 바꿉니다. 명령 앞에 `QUIET_CHECKS=0`을 붙이면 그 명령은 손대지 않고 실행합니다.
 
 `secret-guard.sh`는 임의의 문자열이 아니라 알려진 자격 증명 접두사만 검사합니다. 차단된 프롬프트는 모델로 전송되지 않지만 로컬 프롬프트 기록에는 남을 수 있으므로, 실제 값이었다면 교체해야 합니다. 끄려면 에이전트를 `SECRET_GUARD=0`으로 시작합니다.
+
+`pr-explain.sh`는 `gh pr create`의 설명에서 두 가지를 찾습니다. 하나는 시각 자료(`mermaid` 코드 블록이나 이미지)이고, 다른 하나는 줄 첫머리의 `## How it works` 또는 `## 동작 원리` 제목입니다. 설명은 명령에 직접 쓴 본문이나 `--body-file`로 넘긴 파일에서 읽습니다. `--web`으로 여는 PR과 `gh pr edit`는 검사하지 않습니다. 끄려면 에이전트를 `PR_EXPLAIN=0`으로 시작합니다.
