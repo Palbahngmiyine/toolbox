@@ -1,25 +1,25 @@
 # Palbahngmiyine's Toolbox
 
-Agent tooling for running a software factory on a small token budget.
+LLM과 함께 일할 때 필요한 도구를 모아 두는 곳입니다. 에이전트가 읽고 따르는 지침인 스킬과, 프롬프트를 보내거나 에이전트가 도구를 쓰기 직전에 자동으로 실행되는 스크립트인 훅이 들어 있습니다.
 
-| Path | Purpose |
+| 경로 | 용도 |
 |---|---|
-| `skills/software-factory` | Takes one issue from spec to a merged pull request with deterministic gates first and one independent review. |
-| `skills/conventional-commit` | Writes Conventional Commits messages. |
-| `skills/fork-pr` | Opens a pull request from a fork to its upstream. |
-| `skills/evening-socratic-journal` | Turns the day's agent sessions into a journal entry through questions. |
-| `hooks/quiet-checks.sh` | Sends test, lint, and build output to a log file and shows the agent only the tail. |
-| `hooks/secret-guard.sh` | Blocks a prompt, shell command, or file write that carries a token, webhook URL, or private key. |
+| `skills/dolpa` | 이슈 하나를 스펙부터 병합된 PR까지 적은 토큰으로 진행합니다. 결정적 검사를 먼저 거치고 독립 리뷰는 한 번만 받습니다. |
+| `skills/conventional-commit` | Conventional Commits 형식으로 커밋 메시지를 씁니다. |
+| `skills/fork-pr` | fork에서 upstream으로 PR을 엽니다. |
+| `skills/evening-socratic-journal` | 그날의 에이전트 세션을 문답을 거쳐 일기로 남깁니다. |
+| `hooks/quiet-checks.sh` | 테스트·린트·빌드 출력을 로그 파일로 보내고 에이전트에게는 끝부분만 보여 줍니다. |
+| `hooks/secret-guard.sh` | 토큰, 웹훅 주소, 개인 키가 들어 있는 프롬프트·셸 명령·파일 쓰기를 차단합니다. |
 
-## Install
+## 설치
 
-Link a skill into the agent's skill directory:
+스킬은 에이전트의 스킬 디렉터리에 링크합니다.
 
 ```bash
-ln -s "$PWD/skills/software-factory" ~/.claude/skills/software-factory
+ln -s "$PWD/skills/dolpa" ~/.claude/skills/dolpa
 ```
 
-Register the hooks in `~/.claude/settings.json`, replacing the path with this checkout:
+훅은 `~/.claude/settings.json`에 등록합니다. 경로는 이 저장소를 받은 위치로 바꿉니다.
 
 ```json
 {
@@ -35,6 +35,8 @@ Register the hooks in `~/.claude/settings.json`, replacing the path with this ch
 }
 ```
 
-A recognized check prints its last 5 lines on success and its last 80 on failure, followed by the exit status and the log path. Set `QUIET_CHECKS_OK_LINES` or `QUIET_CHECKS_FAIL_LINES` to change the counts. Prefix a command with `QUIET_CHECKS=0` to run it untouched.
+## 훅 설정
 
-`secret-guard.sh` matches known credential prefixes, not arbitrary strings. A blocked prompt is not sent to the model, but it can stay in local prompt history, so rotate a real credential. Start the agent with `SECRET_GUARD=0` to turn it off.
+`quiet-checks.sh`는 인식한 검사 명령이 성공하면 마지막 5줄, 실패하면 마지막 80줄을 보여 주고 종료 상태와 로그 경로를 덧붙입니다. 줄 수는 `QUIET_CHECKS_OK_LINES`와 `QUIET_CHECKS_FAIL_LINES`로 바꿉니다. 명령 앞에 `QUIET_CHECKS=0`을 붙이면 그 명령은 손대지 않고 실행합니다.
+
+`secret-guard.sh`는 임의의 문자열이 아니라 알려진 자격 증명 접두사만 검사합니다. 차단된 프롬프트는 모델로 전송되지 않지만 로컬 프롬프트 기록에는 남을 수 있으므로, 실제 값이었다면 교체해야 합니다. 끄려면 에이전트를 `SECRET_GUARD=0`으로 시작합니다.
