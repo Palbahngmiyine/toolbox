@@ -13,14 +13,22 @@ Labels on the issue hold the state, so any session can resume an item without ea
 
 | State | Label | Work | Exit |
 |---|---|---|---|
-| Intake | none | No model. Check the issue against its template. | Checkable acceptance criteria, else `needs-info` |
+| Intake | none | No model. Check the issue against its template. | Checkable acceptance criteria and a list of what is out of scope, else `needs-info` |
 | Spec | `ready-to-spec` | Write the requirement, design note, tasks, and failing acceptance tests. | `ready-to-implement` |
 | Implement | `ready-to-implement` | One task, one fresh session, one branch. | Required local checks pass, PR opened |
 | Verify | PR open | CI only. No model. | Every required check is green on the head |
 | Review | green head | One independent reviewer reads the diff. | No blocking finding on the current head |
-| Merge | reviewed green head | Merge, then delete the branch and its worktree. | Issue closed |
+| Merge | reviewed green head | Merge, delete the branch and its worktree, then check the deployed change. | Check recorded, issue closed |
 
 An item that cannot advance gets `needs-human` and a comment naming the blocker. Continue with other items.
+
+## Start Conditions
+
+- Ask every open question in one batch before implementing. When a request reverses a decision settled earlier in the item, confirm once before acting on it.
+- Look for existing work on the item first: `gh pr list --state open --search "<issue number>"` and `git branch --all --list "*<issue number>*"`. Resume it instead of opening a second branch.
+- Keep at most two items in progress per repository unless the user set another limit. One worktree holds one item; never reuse it for a different one.
+- Performance or cost work needs a measured baseline, a target, and a stop condition in the issue. Test one hypothesis per pull request, and revert it when the measurement gets worse.
+- When the user's own instructions set working hours or a weekly item cap, start new work only inside them. Outside them, record the request as an issue and do not implement it unless the user states why it is urgent; put that reason in the issue.
 
 ## Token Rules
 
@@ -54,9 +62,9 @@ An item that cannot advance gets `needs-human` and a comment naming the blocker.
 
 Decide reversible questions yourself, record the choice and its reason in the pull request, and continue. Stop and ask the user, and do not merge, when the item involves any of these:
 
-- Loss or migration of production data, or anything that cannot be undone.
+- Loss or migration of production data, or anything that cannot be undone. Change production data only through a script in the pull request, run dry first, never by an ad hoc query.
 - Authentication, authorization, secrets, or a trust boundary.
-- Spending money, deploying, releasing, or publishing.
+- Payments or orders, spending money, deploy scripts, deploying, releasing, or publishing.
 - Agent instructions, permission settings, CI gates, or check allowlists.
 - A requirement that contradicts another requirement or the user's stated intent.
 
@@ -64,7 +72,10 @@ Ask with one question that states the decision, the options, and what each optio
 
 ## Evidence
 
-- The pull request description carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact.
+- The pull request description opens with two sentences on what changed and why, and one command the user can run to see it themselves.
+- It carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact.
+- A UI change adds before and after screenshots. A change that depends on data adds the result of running it against real data.
+- After the merge, check the change once where it is deployed and record the result on the issue before closing it. If it is not deployed yet, leave the issue open.
 - Report each check as `PASS(scope, evidence)`, `FAIL(reason)`, `NOT_RUN(reason)`, or `NOT_APPLICABLE(reason)`. Agreement among agents is not evidence.
 - Update a pull request by adding commits and comments. Do not rewrite its description or history to hide an earlier state.
 
@@ -76,4 +87,5 @@ Run this when asked, or after about ten merged items. It changes the factory, no
 - Turn a finding seen twice into a deterministic check such as a lint rule, test, CI step, or hook. Then delete the instruction text it replaces.
 - Turn a question asked twice into a recorded decision in the repository's instructions or spec.
 - Remove instructions, skills, and plugins that nothing triggered. Compare `/usage` and `/context` before and after, and keep a change only if usage drops without more rework.
-- Changes to instructions, settings, or gates go in their own pull request for the user to merge.
+- Change an instruction only with evidence that the same failure happened at least twice.
+- Changes to instructions, settings, or gates go in their own draft pull request for the user to merge, not on the day it was opened.
