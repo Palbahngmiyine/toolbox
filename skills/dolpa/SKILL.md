@@ -18,7 +18,7 @@ A work item is whatever the repository already tracks: a task in a spec, an issu
 | Spec | Write the requirement, design note, tasks, and failing acceptance tests. | Item ready to implement |
 | Implement | One task, one fresh session, one branch. | Required local checks pass, PR opened |
 | Verify | CI only. No model. | Every required check is green on the head |
-| Review | One independent reviewer reads the diff. | No blocking finding on the current head |
+| Review | One isolated reviewer reads the diff, as Review below sets out. | No blocking finding on the current head |
 | Merge | Merge, delete the branch and its worktree, then check the deployed change. | Check recorded, item marked done |
 
 Record the state where the item lives, so any session can resume it without earlier conversation: the task's status in the spec's task list, labels on an issue (`ready-to-spec`, `ready-to-implement`, `needs-info`, `needs-human`), or the pull request description for a plain request. Scale each state to the item, and skip one that has nothing to do with one line saying why.
@@ -43,8 +43,6 @@ When an item is split across stacked pull requests, the parent item lists each s
 - Never ask a model what a compiler, linter, test, `git`, or `gh` can answer.
 - Keep tool output out of context. Send check output to a file and read the summary; on failure read only the failing section.
 - Do not review a red head. Classify the failure before spending a fix cycle. A failure in code the diff does not touch means a stale base, so update from the base. A flake gets one `gh run rerun <id> --failed`, never a second. Only a failure in the diff's own code is a fix cycle.
-- Use one reviewer per head, from a different vendor or model than the author, for example `codex review --base <branch>` on Claude's diff. Give it the base and head commits and the spec section, nothing else. After a fix, review only what changed.
-- A review covers a patch, not a commit. When the head changes without a fix, as after a rebase, the review stands only if `git diff <base>...<head> | git patch-id --stable` is unchanged and CI is green on the new head.
 - No fan-out by default. Use a panel, parallel agents, or a second reviewer only when the spec leaves a decision with two or more workable options and reversing it later is expensive.
 - Route by need. Raise the model or effort only after a failed attempt, and say why.
 
@@ -54,9 +52,17 @@ When an item is split across stacked pull requests, the parent item lists each s
   | Implementation, review | mid-tier | medium |
   | Rename, format, conflict merge, log triage | smallest, or a subagent on it | low |
 
-- Wait without spending turns. Block once on `gh pr checks <n> --watch --fail-fast >/dev/null`, then read `gh pr checks <n>` once.
-- Cap unattended runs, for example `claude -p --model <m> --effort <e> --max-budget-usd <n>`.
+- Wait without spending turns: block once on `gh pr checks <n> --watch --fail-fast >/dev/null`, then read `gh pr checks <n>` once. Cap unattended runs, for example `claude -p --model <m> --effort <e> --max-budget-usd <n>`.
 - Stop after three fix cycles on one item. Mark it `needs-human` and report the blocker; do not restart the count.
+
+## Review
+
+- The reviewer is a separate process or a fresh subagent, from a different vendor or model than the author, working in a checkout of the head with no uncommitted changes, for example `codex review --base <branch>` on Claude's diff. Never a fork or a continuation of the authoring session. One reviewer per head.
+- Its whole input is the base and head commits and the acceptance criteria. Withhold the conversation, the pull request description, the author's summary, test results, and earlier findings, and tell it not to read the pull request or the commit log. Say nothing about what the change fixes or why it is safe.
+- It reports only defects it can show, most severe first, ten at most: file and line, the input or state that fails, and the wrong result. An empty report is a valid result. It does not rerun checks CI ran, and opens files outside the diff only to confirm a suspected defect.
+- Send its output to a file and read only the findings. Answer each with a commit, or with a command and its output showing the failure cannot occur. An opinion does not dismiss a finding.
+- After a fix, start a new reviewer on the range since the reviewed head with the same criteria. Do not resume the earlier one.
+- A review covers a patch, not a commit. When the head changes without a fix, as after a rebase, the review stands only if `git diff <base>...<head> | git patch-id --stable` is unchanged and CI is green on the new head.
 
 ## Acceptance Tests
 
@@ -90,10 +96,4 @@ These are the pull requests the user reads before merge; for the rest, the comma
 
 ## Outer Loop
 
-Run this when asked, or after about ten merged items. It changes the factory, not the product.
-
-- Collect from merged pull requests: review findings, fix cycles per item, and every `needs-human` cause.
-- Turn a finding seen twice into a deterministic check such as a lint rule, test, CI step, or hook. Then delete the instruction text it replaces.
-- Turn a question asked twice into a recorded decision in the repository's instructions or spec.
-- Remove instructions, skills, and plugins that nothing triggered. Compare `/usage` and `/context` before and after, and keep a change only if usage drops without more rework.
-- Change an instruction, setting, or gate only with evidence that the same failure happened at least twice, in its own draft pull request for the user to merge, not on the day it was opened.
+Read `references/outer-loop.md` when asked to improve the line itself, or after about ten merged items. Do not read it during an item.
