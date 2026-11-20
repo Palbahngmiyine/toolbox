@@ -1,9 +1,9 @@
 ---
-name: software-factory
-description: Take one issue or spec task from spec to a merged pull request on a minimal token budget, with deterministic gates first, one independent review per green head, and the user asked only for critical decisions. Use for "factory", "공장", "자율 병합", or issue-to-merge requests. Do not use for explanations, reviews of someone else's PR, or single edits.
+name: dolpa
+description: Take one issue or spec task from spec to a merged pull request on a minimal token budget, with deterministic gates first, one independent review per green head, and the user asked only for critical decisions. Use for "dolpa", "factory", "공장", "자율 병합", or issue-to-merge requests. Do not use for explanations, reviews of someone else's PR, or single edits.
 ---
 
-# Software Factory
+# Dolpa
 
 Run one work item through a fixed line. Repository instructions and the user's standing approvals outrank this skill; where they are silent, this skill decides. Without a standing merge approval for the repository, stop at a reviewed, green pull request.
 
