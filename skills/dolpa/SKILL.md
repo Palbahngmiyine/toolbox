@@ -85,11 +85,11 @@ These are the pull requests the user reads before merge; for the rest, the comma
 
 ## Evidence
 
-- The pull request description opens with two sentences on what changed and why, and one command the user can run to see it themselves.
-- It then lists up to three decisions made on the user's behalf, each with the alternative and the spec line to change to reverse it.
+- The pull request description opens with two sentences on what changed and why, and one command the user can run to see it themselves. It then lists up to three decisions made on the user's behalf, each with the alternative and the spec line to change to reverse it.
+- It always carries a visual. A UI change shows before and after screenshots. Any other change gets a `mermaid` diagram of the mechanism it adds or alters: at most six boxes, each a real module, function, or state, labeled in plain words. With three or more moving parts, draw a short series in which each diagram adds one part to the last.
+- Under `## How it works` (or `## 동작 원리`), explain the principle in at most 150 words: what the thing is in general terms, how this change uses it, the path one input takes through it, and why it is built this way and not the obvious alternative. State the mechanism, not a metaphor or a file list, and end with the two or three files to open first. Write it and the diagram from what the session already loaded; start no explorer or second model for them.
 - The user reads the spec change, not the code. A correction arrives as a comment on a spec line or acceptance criterion and sends the item back to Spec.
-- The description carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact.
-- A UI change adds before and after screenshots. A change that depends on data adds the result of running it against real data.
+- The description carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact. A change that depends on data adds the result of running it against real data.
 - After the merge, check the change once where it is deployed and record the result on the item before marking it done. If it is not deployed yet, leave the item open.
 - Report each check as `PASS(scope, evidence)`, `FAIL(reason)`, `NOT_RUN(reason)`, or `NOT_APPLICABLE(reason)`. Agreement among agents is not evidence.
 - Update a pull request by adding commits and comments. Do not rewrite its description or history to hide an earlier state.
