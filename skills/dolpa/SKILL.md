@@ -21,9 +21,7 @@ A work item is whatever the repository already tracks: a task in a spec, an issu
 | Review | One isolated reviewer reads the diff, as Review below sets out. | No blocking finding on the current head |
 | Merge | Merge, delete the branch and its worktree, then check the deployed change. | Check recorded, item marked done |
 
-Record the state where the item lives, so any session can resume it without earlier conversation: the task's status in the spec's task list, labels on an issue (`ready-to-spec`, `ready-to-implement`, `needs-info`, `needs-human`), or the pull request description for a plain request. Scale each state to the item, and skip one that has nothing to do with one line saying why.
-
-An item that cannot advance is marked `needs-human` there with the blocker named. Continue with other items.
+Record the state where the item lives, so any session can resume it without earlier conversation: the task's status in the spec's task list, labels on an issue (`ready-to-spec`, `ready-to-implement`, `needs-info`, `needs-human`), or the pull request description for a plain request. Scale each state to the item, and skip one that has nothing to do with one line saying why. An item that cannot advance is marked `needs-human` there with the blocker named; continue with other items.
 
 When an item is split across stacked pull requests, the parent item lists each slice in one line with its state, built with `gh pr list` and no model. The user follows that list, not each slice.
 
@@ -86,6 +84,7 @@ These are the pull requests the user reads before merge; for the rest, the comma
 ## Evidence
 
 - The pull request description opens with two sentences on what changed and why, and one command the user can run to see it themselves. It then lists up to three decisions made on the user's behalf, each with the alternative and the spec line to change to reverse it.
+- Write the description's prose in the user's language first and in English beneath it, section by section; when the user's language is English, write it once. Diagram labels use the user's language. Commands, output, and identifiers are not translated, and each word limit applies per language.
 - It always carries a visual. A UI change shows before and after screenshots. Any other change gets a `mermaid` diagram of the mechanism it adds or alters: at most six boxes, each a real module, function, or state, labeled in plain words. With three or more moving parts, draw a short series in which each diagram adds one part to the last.
 - Under `## How it works` (or `## 동작 원리`), explain the principle in at most 150 words: what the thing is in general terms, how this change uses it, the path one input takes through it, and why it is built this way and not the obvious alternative. State the mechanism, not a metaphor or a file list, and end with the two or three files to open first. Write it and the diagram from what the session already loaded; start no explorer or second model for them.
 - The user reads the spec change, not the code. A correction arrives as a comment on a spec line or acceptance criterion and sends the item back to Spec.
