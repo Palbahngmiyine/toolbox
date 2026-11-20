@@ -55,11 +55,12 @@ When an item is split across stacked pull requests, the parent item lists each s
 
 ## Review
 
-- The reviewer is a separate process or a fresh subagent, from a different vendor or model than the author, working in a checkout of the head with no uncommitted changes, for example `codex review --base <branch>` on Claude's diff. Never a fork or a continuation of the authoring session. One reviewer per head.
+- The reviewer is a separate process or a fresh subagent working in a checkout of the head with no uncommitted changes. Never a fork or a continuation of the authoring session. One completed review per head.
+- Take the first reviewer that works, in this order: another vendor's CLI, such as `codex review --base <branch>`, then `gemini -p` or `cursor-agent -p`; the author's vendor on a different model, such as `claude -p --model <other>`; the author's own model in a fresh process. A different vendor is preferred, not required. The isolation rules below hold for every one of them.
+- A reviewer that exits non-zero, reports a usage limit, or returns nothing has not reviewed. Do not retry it or wait for it. Move to the next, and name in the description the reviewer that ran and why each earlier one did not. A review bot on the pull request that has not finished is not the review.
 - Its whole input is the base and head commits and the acceptance criteria. Withhold the conversation, the pull request description, the author's summary, test results, and earlier findings, and tell it not to read the pull request or the commit log. Say nothing about what the change fixes or why it is safe.
 - It reports only defects it can show, most severe first, ten at most: file and line, the input or state that fails, and the wrong result. An empty report is a valid result. It does not rerun checks CI ran, and opens files outside the diff only to confirm a suspected defect.
-- Send its output to a file and read only the findings. Answer each with a commit, or with a command and its output showing the failure cannot occur. An opinion does not dismiss a finding.
-- After a fix, start a new reviewer on the range since the reviewed head with the same criteria. Do not resume the earlier one.
+- Send its output to a file and read only the findings. Answer each with a commit, or with a command and its output showing the failure cannot occur. An opinion does not dismiss a finding. After a fix, start a new reviewer on the range since the reviewed head with the same criteria; do not resume the earlier one.
 - A review covers a patch, not a commit. When the head changes without a fix, as after a rebase, the review stands only if `git diff <base>...<head> | git patch-id --stable` is unchanged and CI is green on the new head.
 
 ## Acceptance Tests
