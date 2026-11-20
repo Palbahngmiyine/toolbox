@@ -22,11 +22,14 @@ Labels on the issue hold the state, so any session can resume an item without ea
 
 An item that cannot advance gets `needs-human` and a comment naming the blocker. Continue with other items.
 
+When an item is split across stacked pull requests, its issue lists each slice in one line with its state, built with `gh pr list` and no model. The user follows the issue, not each slice.
+
 ## Start Conditions
 
 - Ask every open question in one batch before implementing. When a request reverses a decision settled earlier in the item, confirm once before acting on it.
 - Look for existing work on the item first: `gh pr list --state open --search "<issue number>"` and `git branch --all --list "*<issue number>*"`. Resume it instead of opening a second branch.
 - Keep at most two items in progress per repository unless the user set another limit. One worktree holds one item; never reuse it for a different one.
+- Slice a task in the Spec state so its diff outside tests stays under about 400 changed lines, unless the repository sets another limit. A task that cannot be sliced says why in the issue.
 - Performance or cost work needs a measured baseline, a target, and a stop condition in the issue. Test one hypothesis per pull request, and revert it when the measurement gets worse.
 - When the user's own instructions set working hours or a weekly item cap, start new work only inside them. Outside them, record the request as an issue and do not implement it unless the user states why it is urgent; put that reason in the issue.
 
@@ -68,12 +71,14 @@ Decide reversible questions yourself, record the choice and its reason in the pu
 - Agent instructions, permission settings, CI gates, or check allowlists.
 - A requirement that contradicts another requirement or the user's stated intent.
 
-Ask with one question that states the decision, the options, and what each option costs. If no question tool is available, label the item `needs-human` and stop that item only.
+These are the pull requests the user reads before merge; for the rest, the command in the description is the user's check. Ask with one question that states the decision, the options, and what each option costs. If no question tool is available, label the item `needs-human` and stop that item only.
 
 ## Evidence
 
 - The pull request description opens with two sentences on what changed and why, and one command the user can run to see it themselves.
-- It carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact.
+- It then lists up to three decisions made on the user's behalf, each with the alternative and the spec line to change to reverse it.
+- The user reads the spec change, not the code. A correction arrives as a comment on a spec line or acceptance criterion and sends the item back to Spec.
+- The description carries an artifact that settles its claims: the commands run and their actual output, bound to the head commit. A summary or an agent's statement that it works is not an artifact.
 - A UI change adds before and after screenshots. A change that depends on data adds the result of running it against real data.
 - After the merge, check the change once where it is deployed and record the result on the issue before closing it. If it is not deployed yet, leave the issue open.
 - Report each check as `PASS(scope, evidence)`, `FAIL(reason)`, `NOT_RUN(reason)`, or `NOT_APPLICABLE(reason)`. Agreement among agents is not evidence.
