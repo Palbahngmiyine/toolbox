@@ -31,7 +31,9 @@ printf '%s\n' 'Fixes the bug.' >"$tmp/bare.md"
 cp "$tmp/full.md" "$tmp/with space.md"
 
 for passthrough in 'git status' 'gh pr list' 'gh pr view 3' 'echo gh pr created' 'gh pr create --web' \
-  'gh pr create --body-file missing.md' 'gh pr create -F -' 'gh pr edit 3 --body x'; do
+  'gh pr create --body-file missing.md' 'gh pr create -F -' 'gh pr edit 3 --body x' \
+  'gh pr create --help' 'gh pr create -h' 'gh pr create --dry-run' 'echo gh pr create --fill' \
+  'git commit -m "use gh pr create here"' 'grep -n "gh pr create" README.md'; do
   check "passes through: $passthrough" "$(payload "$passthrough" | "$hook")" '{}'
 done
 check 'passes through malformed input' "$(echo 'not json' | "$hook")" '{}'
@@ -49,6 +51,11 @@ check 'denies a body with neither' "$(verdict 'gh pr create --body-file bare.md'
 check 'denies --fill' "$(verdict 'gh pr create --fill')" deny
 check 'denies a body without a visual' "$(verdict 'gh pr create --body-file no-visual.md')" deny
 check 'denies a body without the section' "$(verdict 'gh pr create --body-file no-heading.md')" deny
+check 'denies a create after an assignment' "$(verdict 'GH_REPO=o/r gh pr create --fill')" deny
+check 'denies a create on a later line' "$(verdict $'git push\ngh pr create --fill')" deny
+check 'denies a create in a subshell' "$(verdict '(gh pr create --fill)')" deny
+check 'denies --dry-run that carries a description' "$(verdict 'gh pr create --dry-run --body-file bare.md')" deny
+check 'denies a description that only mentions --help' "$(verdict 'gh pr create --body "see --help for flags"')" deny
 check 'denies a heading that is not at a line start' \
   "$(verdict "gh pr create --body \"${diagram} see ## How it works\"")" deny
 

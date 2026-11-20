@@ -9,9 +9,18 @@ input=$(cat)
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input" 2>/dev/null) || cmd=""
 cwd=$(jq -r '.cwd // empty' <<<"$input" 2>/dev/null) || cwd=""
 
-create='(^|[;&|[:space:]])gh[[:space:]]+pr[[:space:]]+create([[:space:]]|$)'
+# `gh` must stand where a command starts: at the beginning, or after a separator,
+# with optional NAME=value assignments before it. The words inside a commit
+# message or an echo are not a command.
+start='(^|[;&|('$'\n''])[[:space:]]*([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*'
+create="${start}gh[[:space:]]+pr[[:space:]]+create([[:space:]]|\$)"
 web='[[:space:]](--web|-w)([[:space:]]|$)'
-if [[ "${PR_EXPLAIN:-1}" == 0 || ! "$cmd" =~ $create || "$cmd" =~ $web ]]; then
+# --help and --dry-run create nothing. They pass only when the command carries
+# no description, so a description that mentions them is still checked.
+info='[[:space:]](--help|-h|--dry-run)([[:space:]]|$)'
+body='[[:space:]](--body|-b|--body-file|-F|--fill[a-z-]*|--template|-T)([[:space:]=]|$)'
+if [[ "${PR_EXPLAIN:-1}" == 0 || ! "$cmd" =~ $create || "$cmd" =~ $web ]] ||
+  [[ "$cmd" =~ $info && ! "$cmd" =~ $body ]]; then
   echo '{}'
   exit 0
 fi
