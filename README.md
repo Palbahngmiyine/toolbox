@@ -4,8 +4,8 @@ LLM과 함께 일할 때 필요한 도구를 모아 두는 곳입니다. 에이�
 
 | 경로 | 용도 |
 |---|---|
-| `skills/dolpa` | 이슈 하나를 스펙부터 병합된 PR까지 적은 토큰으로 진행합니다. 결정적 검사를 먼저 거치고 독립 리뷰는 한 번만 받습니다. |
-| `skills/dolpa-swarm` | 큰 이슈 하나를 작은 항목으로 나누고, 서로 겹치지 않는 항목들을 `dolpa`로 동시에 진행한 뒤 하나씩 병합합니다. |
+| `skills/dolpa` | 작업 하나를 스펙부터 병합된 PR까지 적은 토큰으로 진행합니다. 작업은 스펙의 태스크, 이슈, 대화로 받은 요청 중 무엇이든 됩니다. 결정적 검사를 먼저 거치고 독립 리뷰는 한 번만 받습니다. |
+| `skills/dolpa-swarm` | 큰 작업 하나를 작은 항목으로 나누고, 서로 겹치지 않는 항목들을 `dolpa`로 동시에 진행한 뒤 하나씩 병합합니다. |
 | `skills/conventional-commit` | Conventional Commits 형식으로 커밋 메시지를 씁니다. |
 | `skills/fork-pr` | fork에서 upstream으로 PR을 엽니다. |
 | `skills/evening-socratic-journal` | 그날의 에이전트 세션을 문답을 거쳐 일기로 남깁니다. |
@@ -19,6 +19,8 @@ LLM과 함께 일할 때 필요한 도구를 모아 두는 곳입니다. 에이�
 ```bash
 ln -s "$PWD/skills/dolpa" ~/.claude/skills/dolpa
 ```
+
+`dolpa`와 `dolpa-swarm`은 수동 호출 전용입니다. 에이전트가 스스로 부르지 않으므로 `/dolpa <작업>`처럼 직접 입력합니다.
 
 훅은 `~/.claude/settings.json`에 등록합니다. 경로는 이 저장소를 받은 위치로 바꿉니다.
 
