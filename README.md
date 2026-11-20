@@ -46,4 +46,4 @@ ln -s "$PWD/skills/dolpa" ~/.claude/skills/dolpa
 
 `secret-guard.sh`는 임의의 문자열이 아니라 알려진 자격 증명 접두사만 검사합니다. 차단된 프롬프트는 모델로 전송되지 않지만 로컬 프롬프트 기록에는 남을 수 있으므로, 실제 값이었다면 교체해야 합니다. 끄려면 에이전트를 `SECRET_GUARD=0`으로 시작합니다.
 
-`pr-explain.sh`는 `gh pr create`의 설명에서 두 가지를 찾습니다. 하나는 시각 자료(`mermaid` 코드 블록이나 이미지)이고, 다른 하나는 줄 첫머리의 `## How it works` 또는 `## 동작 원리` 제목입니다. 설명은 명령에 직접 쓴 본문이나 `--body-file`로 넘긴 파일에서 읽습니다. `--web`으로 여는 PR과 `gh pr edit`는 검사하지 않습니다. 끄려면 에이전트를 `PR_EXPLAIN=0`으로 시작합니다.
+`pr-explain.sh`는 `gh pr create`의 설명에서 두 가지를 찾습니다. 하나는 시각 자료(`mermaid` 코드 블록이나 이미지)이고, 다른 하나는 줄 첫머리의 `## How it works` 또는 `## 동작 원리` 제목입니다. 설명은 명령에 직접 쓴 본문이나 `--body-file`로 넘긴 파일에서 읽습니다. `gh`가 명령 자리에 있을 때만 검사하므로, 커밋 메시지나 `echo` 안에 그 문구가 들어 있는 것은 막지 않습니다. `--web`으로 여는 PR, `gh pr edit`, 설명이 없는 `--help`와 `--dry-run`도 검사하지 않습니다. 끄려면 에이전트를 `PR_EXPLAIN=0`으로 시작합니다.
