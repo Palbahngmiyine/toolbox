@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # PreToolUse hook for the Bash tool. Denies `gh pr create` when the pull request
-# description lacks a visual or a section that explains how the change works.
+# description lacks a before and after section, a table that compares the two
+# states, a picture of the change, a section that explains how it works, an
+# edge cases section with an alert, or a not verified section.
 # It reads the description from the command or from its body file. Anything
 # else passes through.
 set -euo pipefail
@@ -39,13 +41,41 @@ if [[ "$cmd" =~ $file ]]; then
   text=$(cat "$path")
 fi
 
-visual='```mermaid|!\[[^]]*\]\(|<img[[:space:]]'
-heading=$'(^|\n)#{2,3}[[:space:]]+(How it works|동작 원리)'
+# A heading starts a line, or opens an inline body right after its quote.
+line=$'(^|\n|["\'])'
+sides="${line}#{2,3}[[:space:]]+(Before and after|변경 전후)"
+heading="${line}#{2,3}[[:space:]]+(How it works|동작 원리)"
+edges="${line}#{2,3}[[:space:]]+(Edge cases|엣지 케이스)"
+# The section warns in a GitHub alert, or says that there is nothing to warn of.
+alert=$'(^|\n)>[[:space:]]*\\[!(WARNING|CAUTION)\\]'
+none="${edges}[^"$'\n'"]*"$'\n+'"(None|없음)"
+unverified="${line}#{2,3}[[:space:]]+(Not verified|확인하지 못한 것)"
+# A table row whose neighboring cells name the two states.
+table=$'\\|[^|\n]*([Bb]efore|변경 전)[^|\n]*\\|[^|\n]*([Aa]fter|변경 후)[^|\n]*\\|'
+# What can show a change: an image in the description, a video in it, or a file
+# uploaded with --attach. A mermaid block is none of these.
+image='!\[[^]]*\]\(|<img[[:space:]]'
+video='<video[[:space:]]|https://github\.com/user-attachments/assets/'
+attach='[[:space:]]--attach[[:space:]=]+[^[:space:]]'
+
+# Succeeds when the description shows the change before and after.
+shows_change() {
+  [[ "$text" =~ $image || "$text" =~ $video || "$cmd" =~ $attach ]]
+}
+
 missing=()
-[[ "$text" =~ $visual ]] ||
-  missing+=("a visual: screenshots for a UI change, otherwise a mermaid diagram of the mechanism")
+[[ "$text" =~ $sides ]] ||
+  missing+=("a '## Before and after' section")
+[[ "$text" =~ $table ]] ||
+  missing+=("a table with a before column and an after column")
+shows_change ||
+  missing+=("a picture of the change: a recording or screenshots for a UI change, otherwise a drawn before and after image, passed with --attach")
 [[ "$text" =~ $heading ]] ||
   missing+=("a '## How it works' section that explains the principle")
+[[ "$text" =~ $edges && ("$text" =~ $alert || "$text" =~ $none) ]] ||
+  missing+=("a '## Edge cases' section that opens with a > [!WARNING] or > [!CAUTION] alert, or says None")
+[[ "$text" =~ $unverified ]] ||
+  missing+=("a '## Not verified' section")
 
 if [[ ${#missing[@]} -eq 0 ]]; then
   echo '{}'
