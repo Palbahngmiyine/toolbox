@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook for the Bash tool. Denies `gh pr create` when the pull request
-# description lacks a visual or a section that explains how the change works.
+# description lacks a before and after section, a picture of the change, or a
+# section that explains how the change works.
 # It reads the description from the command or from its body file. Anything
 # else passes through.
 set -euo pipefail
@@ -39,11 +40,26 @@ if [[ "$cmd" =~ $file ]]; then
   text=$(cat "$path")
 fi
 
-visual='```mermaid|!\[[^]]*\]\(|<img[[:space:]]'
-heading=$'(^|\n)#{2,3}[[:space:]]+(How it works|동작 원리)'
+# A heading starts a line, or opens an inline body right after its quote.
+line=$'(^|\n|["\'])'
+sides="${line}#{2,3}[[:space:]]+(Before and after|변경 전후)"
+heading="${line}#{2,3}[[:space:]]+(How it works|동작 원리)"
+# What can show a change: an image in the description, a video in it, or a file
+# uploaded with --attach. A mermaid block is none of these.
+image='!\[[^]]*\]\(|<img[[:space:]]'
+video='<video[[:space:]]|https://github\.com/user-attachments/assets/'
+attach='[[:space:]]--attach[[:space:]=]+[^[:space:]]'
+
+# Succeeds when the description shows the change before and after.
+shows_change() {
+  [[ "$text" =~ $image || "$text" =~ $video || "$cmd" =~ $attach ]]
+}
+
 missing=()
-[[ "$text" =~ $visual ]] ||
-  missing+=("a visual: screenshots for a UI change, otherwise a mermaid diagram of the mechanism")
+[[ "$text" =~ $sides ]] ||
+  missing+=("a '## Before and after' section")
+shows_change ||
+  missing+=("a picture of the change: a recording or screenshots for a UI change, otherwise a drawn before and after image, passed with --attach")
 [[ "$text" =~ $heading ]] ||
   missing+=("a '## How it works' section that explains the principle")
 
