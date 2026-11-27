@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook for the Bash tool. Denies `gh pr create` when the pull request
-# description lacks a before and after section, a picture of the change, or a
-# section that explains how the change works.
+# description lacks a before and after section, a table that compares the two
+# states, a picture of the change, or a section that explains how it works.
 # It reads the description from the command or from its body file. Anything
 # else passes through.
 set -euo pipefail
@@ -44,6 +44,8 @@ fi
 line=$'(^|\n|["\'])'
 sides="${line}#{2,3}[[:space:]]+(Before and after|변경 전후)"
 heading="${line}#{2,3}[[:space:]]+(How it works|동작 원리)"
+# A table row whose neighboring cells name the two states.
+table=$'\\|[^|\n]*([Bb]efore|변경 전)[^|\n]*\\|[^|\n]*([Aa]fter|변경 후)[^|\n]*\\|'
 # What can show a change: an image in the description, a video in it, or a file
 # uploaded with --attach. A mermaid block is none of these.
 image='!\[[^]]*\]\(|<img[[:space:]]'
@@ -58,6 +60,8 @@ shows_change() {
 missing=()
 [[ "$text" =~ $sides ]] ||
   missing+=("a '## Before and after' section")
+[[ "$text" =~ $table ]] ||
+  missing+=("a table with a before column and an after column")
 shows_change ||
   missing+=("a picture of the change: a recording or screenshots for a UI change, otherwise a drawn before and after image, passed with --attach")
 [[ "$text" =~ $heading ]] ||

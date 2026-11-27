@@ -22,17 +22,22 @@ reason() { payload "$1" | "$hook" | jq -r '.hookSpecificOutput.permissionDecisio
 
 fence='```'
 diagram="${fence}mermaid"$'\nflowchart LR\n  a --> b\n'"${fence}"
-sides=$'## Before and after\n\n![Before and after](./before-after.png)'
+rows=$'| | Before | After |\n|---|---|---|\n| result | blocked | passes |'
+sides=$'## Before and after\n\n'"$rows"$'\n\n![Before and after](./before-after.png)'
 how=$'## How it works\n\nA request passes the guard, then the store.'
-printf '%s\n\n%s\n\n%s\n' "$sides" "$diagram" "$how" >"$tmp/full.md"
-printf '%s\n\n%s\n' $'## 변경 전후\n\n![변경 전](before.png) ![변경 후](after.png)' \
+printf '%s\n\n%s\n' "$sides" "$how" >"$tmp/full.md"
+printf '%s\n\n%s\n' \
+  $'## 변경 전후\n\n| 항목<br>Item | 변경 전<br>Before | 변경 후<br>After |\n|---|---|---|\n| 화면 | ![전](before.png) | ![후](after.png) |' \
   $'## 동작 원리\n\n요청은 검사를 거쳐 저장소로 갑니다.' >"$tmp/korean.md"
-printf '%s\n\n%s\n' $'## Before and after\n\nThe recordings follow, before first.' "$how" >"$tmp/recording.md"
-printf '%s\n\n%s\n' $'## Before and after\n\nhttps://github.com/user-attachments/assets/0a1b2c' "$how" >"$tmp/video.md"
-printf '%s\n\n%s\n\n%s\n' $'## Before and after\n\nSee the diagram.' "$diagram" "$how" >"$tmp/mermaid-only.md"
-printf '%s\n\n%s\n' $'## Before and after\n\nPass the image with --attach later.' "$how" >"$tmp/mention.md"
-printf '%s\n\n%s\n' '![after](after.png)' "$how" >"$tmp/no-sides.md"
-printf '%s\n\n%s\n' "$sides" "$diagram" >"$tmp/no-heading.md"
+printf '%s\n\n%s\n\n%s\n' $'## Before and after\n\nThe recordings follow, before first.' "$rows" "$how" >"$tmp/recording.md"
+printf '%s\n\n%s\n\n%s\n' $'## Before and after\n\nhttps://github.com/user-attachments/assets/0a1b2c' "$rows" "$how" >"$tmp/video.md"
+printf '%s\n\n%s\n\n%s\n\n%s\n' $'## Before and after\n\nSee the diagram.' "$rows" "$diagram" "$how" >"$tmp/mermaid-only.md"
+printf '%s\n\n%s\n\n%s\n' $'## Before and after\n\nPass the image with --attach later.' "$rows" "$how" >"$tmp/mention.md"
+printf '%s\n\n%s\n' $'## Before and after\n\n![Before and after](./before-after.png)' "$how" >"$tmp/no-table.md"
+printf '%s\n\n%s\n' $'## Before and after\n\n| | After |\n|---|---|\n| result | passes |\n\n![after](./after.png)' "$how" >"$tmp/after-only.md"
+printf '%s\n\n%s\n' $'## Before and after\n\n| | Before |\n|---|---|\n| result | blocked |\n\n![before](./before.png)' "$how" >"$tmp/before-only.md"
+printf '%s\n\n%s\n\n%s\n' "$rows" '![after](after.png)' "$how" >"$tmp/no-sides.md"
+printf '%s\n' "$sides" >"$tmp/no-heading.md"
 printf '%s\n' 'Fixes the bug.' >"$tmp/bare.md"
 cp "$tmp/full.md" "$tmp/with space.md"
 
@@ -45,8 +50,8 @@ done
 check 'passes through malformed input' "$(echo 'not json' | "$hook")" '{}'
 check 'passes through when switched off' "$(payload 'gh pr create --fill' | PR_EXPLAIN=0 "$hook")" '{}'
 
-check 'allows a body file with the picture and both sections' "$(verdict 'gh pr create --body-file full.md')" passed
-check 'allows images and the Korean headings' "$(verdict 'gh pr create -F korean.md')" passed
+check 'allows a body file with the table, the picture, and both sections' "$(verdict 'gh pr create --body-file full.md')" passed
+check 'allows Korean headings and a table with two-language cells' "$(verdict 'gh pr create -F korean.md')" passed
 check 'allows recordings passed with --attach' \
   "$(verdict 'gh pr create -F recording.md --attach before.mp4 --attach after.mp4')" passed
 check 'allows an uploaded video address in the body' "$(verdict 'gh pr create -F video.md')" passed
@@ -61,6 +66,9 @@ check 'denies --fill' "$(verdict 'gh pr create --fill')" deny
 check 'denies a mermaid block as the only picture' "$(verdict 'gh pr create --body-file mermaid-only.md')" deny
 check 'denies recordings that are not attached' "$(verdict 'gh pr create -F recording.md')" deny
 check 'denies a body file that only mentions --attach' "$(verdict 'gh pr create -F mention.md')" deny
+check 'denies a body without the comparison table' "$(verdict 'gh pr create --body-file no-table.md')" deny
+check 'denies a table with only an after column' "$(verdict 'gh pr create --body-file after-only.md')" deny
+check 'denies a table with only a before column' "$(verdict 'gh pr create --body-file before-only.md')" deny
 check 'denies a body without the before and after section' "$(verdict 'gh pr create --body-file no-sides.md')" deny
 check 'denies a body without the how it works section' "$(verdict 'gh pr create --body-file no-heading.md')" deny
 check 'denies a create after an assignment' "$(verdict 'GH_REPO=o/r gh pr create --fill')" deny
@@ -73,12 +81,14 @@ check 'denies a heading that is not at a line start' \
 
 check 'names only the missing picture' \
   "$(reason 'gh pr create --body-file mermaid-only.md' | grep -c 'is missing a picture of the change.*--attach\. Write')" 1
+check 'names only the missing table' \
+  "$(reason 'gh pr create --body-file no-table.md' | grep -c 'is missing a table with a before column and an after column\. Write')" 1
 check 'names only the missing before and after section' \
   "$(reason 'gh pr create --body-file no-sides.md' | grep -c "is missing a '## Before and after' section\. Write")" 1
 check 'names only the missing how it works section' \
   "$(reason 'gh pr create --body-file no-heading.md' | grep -c "is missing a '## How it works' section")" 1
-check 'names all three when all are missing' \
-  "$(reason 'gh pr create --body-file bare.md' | grep -c 'Before and after.* and a picture.* and a .## How it works')" 1
+check 'names all four when all are missing' \
+  "$(reason 'gh pr create --body-file bare.md' | grep -c 'Before and after.* and a table.* and a picture.* and a .## How it works')" 1
 
 if [[ "$failures" -gt 0 ]]; then
   echo "$failures failed"
