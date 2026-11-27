@@ -13,6 +13,7 @@ Read this when building the `## Before and after` section. Work from what the se
 - Capture the before state on the base commit and the after state on the head with the same steps, route, viewport, theme, and data, and stop both at the same step.
 - Prefer a recording of the interaction: 20 seconds at most, `.mp4`, `.mov`, or `.webm`, under 10 MB. Use a recorder the repository or machine already has. Fall back to one screenshot per state only when the screen cannot be recorded.
 - Put the two screenshots in one table row, before on the left, and say in one line where to look.
+- Capture with test data. A capture that shows a secret, a credential, or a real person's data is not uploaded.
 - Show real output. A mock-up or an edited capture is not a screenshot. When the screen cannot be run, write `NOT_RUN(reason)` under the heading and draw the image below instead.
 
 ## Any other change
