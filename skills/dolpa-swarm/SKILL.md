@@ -21,7 +21,7 @@ Parallel work does not lower what an item costs. It shortens the wait, and every
 
 Do this once, on the strongest model, before any worker starts.
 
-- Write the spec for the whole work, then cut it into items that each pass `dolpa` Intake and its size limit.
+- Write the spec for the whole work, then cut it into items that each pass `dolpa` Intake and its size limit. Settle a decision that spans items with the panel in `dolpa`'s `references/design-panel.md`, under its condition, before cutting.
 - Record the items where the repository already tracks work, such as the spec's task list or sub-issues. Each item names the paths it may change and the items it depends on. A worker that needs a path outside its list stops and reports; it does not edit that path.
 - Give a file that many items must touch, such as registration, routing, schema, or a lock file, to one item scheduled before the others.
 - Branch items from the base branch. Stack an item on another only when it needs code that is not merged yet.

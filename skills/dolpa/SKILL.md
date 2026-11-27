@@ -41,7 +41,7 @@ When an item is split across stacked pull requests, the parent item lists each s
 - Never ask a model what a compiler, linter, test, `git`, or `gh` can answer.
 - Keep tool output out of context. Send check output to a file and read the summary; on failure read only the failing section.
 - Do not review a red head. Classify the failure before spending a fix cycle. A failure in code the diff does not touch means a stale base, so update from the base. A flake gets one `gh run rerun <id> --failed`, never a second. Only a failure in the diff's own code is a fix cycle.
-- No fan-out by default. Use a panel, parallel agents, or a second reviewer only when the spec leaves a decision with two or more workable options and reversing it later is expensive.
+- No fan-out by default. Only when the spec leaves a decision with two or more workable options and reversing it later is expensive, read `references/design-panel.md` and run its three-vendor panel before writing the design note.
 - Route by need. Raise the model or effort only after a failed attempt, and say why.
 
   | Work | Model | Effort |
